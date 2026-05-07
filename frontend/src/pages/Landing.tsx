@@ -2,9 +2,10 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   Phone, Calendar, Globe, Shield, Zap, CheckCircle2, 
-  ChevronRight, Star, Building2, Stethoscope, UtensilsCrossed, Menu, X
+  ChevronRight, Star, Building2, Stethoscope, UtensilsCrossed, Menu, X, Play
 } from 'lucide-react';
 import { useState } from 'react';
+import { useAuthStore } from '../store/authStore';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -14,6 +15,16 @@ const fadeUp = {
 const Landing = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { login } = useAuthStore();
+
+  const enterDemo = () => {
+    // Inject a demo user — no backend needed
+    login(
+      { id: 'demo-user', email: 'demo@receptionistai.com', firstName: 'Demo', lastName: 'Business', role: 'BUSINESS_OWNER' },
+      'demo-token'
+    );
+    navigate('/dashboard');
+  };
 
   const features = [
     { icon: Phone, title: 'AI Voice Receptionist', desc: 'Answers every call 24/7, speaks naturally, and handles inquiries just like a real receptionist — powered by RetellAI.' },
@@ -53,6 +64,9 @@ const Landing = () => {
             <a href="#pricing" className="hover:text-slate-900 transition-colors">Pricing</a>
           </div>
           <div className="hidden md:flex items-center gap-3">
+            <button onClick={enterDemo} className="flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors">
+              <Play className="w-3.5 h-3.5 fill-current" /> Live Demo
+            </button>
             <button onClick={() => navigate('/login')} className="text-sm font-medium text-slate-700 hover:text-slate-900 px-4 py-2 rounded-lg hover:bg-slate-100 transition-colors">Sign In</button>
             <button onClick={() => navigate('/register')} className="text-sm font-medium bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-800 transition-colors">Get Started Free</button>
           </div>
@@ -89,10 +103,13 @@ const Landing = () => {
             <button onClick={() => navigate('/register')} className="px-8 py-4 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 group">
               Start Free Today <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
-            <button onClick={() => navigate('/login')} className="px-8 py-4 bg-white text-slate-700 font-semibold rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all">
-              View Demo Dashboard
+            <button onClick={enterDemo} className="px-8 py-4 bg-blue-500 text-white font-semibold rounded-xl hover:bg-blue-600 transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2 group">
+              <Play className="w-4 h-4 fill-current" /> Try Live Demo
             </button>
           </motion.div>
+          <motion.p custom={3.5} initial="hidden" animate="visible" variants={fadeUp} className="text-xs text-slate-400 mt-3">
+            No signup needed · Explore the full dashboard instantly
+          </motion.p>
 
           {/* Social proof */}
           <motion.div custom={4} initial="hidden" animate="visible" variants={fadeUp} className="mt-16 flex flex-wrap items-center justify-center gap-6 text-sm text-slate-400">
