@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuthStore } from './store/authStore';
 
 // Import themeStore so its module-level code runs immediately on app load
 import './store/themeStore';

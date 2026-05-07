@@ -13,7 +13,7 @@ type Tab = 'profile' | 'security' | 'appearance' | 'notifications';
 const Settings = () => {
   const [activeTab, setActiveTab] = useState<Tab>('profile');
   const { user, updateUser } = useAuthStore();
-  const { mode, accent, sidebarStyle, setMode, setAccent, setSidebarStyle } = useThemeStore();
+  const { mode, setMode } = useThemeStore();
 
   // Profile state
   const [profile, setProfile] = useState({
@@ -35,13 +35,6 @@ const Settings = () => {
     smsAlerts: true, pushCalls: true, pushAppointments: true,
   });
 
-  const accentColors = [
-    { name: 'blue', label: 'Ocean Blue', class: 'bg-blue-500' },
-    { name: 'purple', label: 'Royal Purple', class: 'bg-purple-500' },
-    { name: 'emerald', label: 'Emerald', class: 'bg-emerald-500' },
-    { name: 'rose', label: 'Rose', class: 'bg-rose-500' },
-    { name: 'amber', label: 'Amber', class: 'bg-amber-500' },
-  ];
 
   const handleProfileSave = (e: React.FormEvent) => {
     e.preventDefault();
