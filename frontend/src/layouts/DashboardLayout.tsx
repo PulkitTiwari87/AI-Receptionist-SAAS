@@ -61,7 +61,7 @@ const DashboardLayout = () => {
       {/* Sidebar */}
       <aside className="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col flex-shrink-0">
         {/* Logo */}
-        <div className="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-700">
+        <Link to="/" className="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center mr-3 shadow-sm">
             <PhoneCall className="w-4 h-4 text-white" />
           </div>
@@ -69,7 +69,7 @@ const DashboardLayout = () => {
           {user?.role === 'SUPER_ADMIN' && (
             <span className="ml-auto text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 px-2 py-0.5 rounded-full font-semibold">Admin</span>
           )}
-        </div>
+        </Link>
 
         {/* Nav */}
         <div className="flex-1 py-5 px-3 space-y-1 overflow-y-auto">
