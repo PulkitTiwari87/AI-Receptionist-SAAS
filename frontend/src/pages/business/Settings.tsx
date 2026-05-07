@@ -267,46 +267,7 @@ const Settings = () => {
                     </div>
                   </div>
 
-                  {/* Accent Color */}
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Accent Color</h3>
-                    <div className="flex gap-3 flex-wrap">
-                      {accentColors.map(c => (
-                        <button key={c.name} onClick={() => setAccent(c.name as any)}
-                          title={c.label}
-                          className={`w-10 h-10 rounded-full ${c.class} transition-all hover:scale-110 ${
-                            accent === c.name ? 'ring-4 ring-offset-2 ring-blue-400 scale-110' : ''
-                          }`} />
-                      ))}
-                    </div>
-                  </div>
 
-                  {/* Sidebar Style */}
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Sidebar Style</h3>
-                    <div className="space-y-2">
-                      {[
-                        { value: 'default', label: 'Default', desc: 'Full sidebar with labels and icons' },
-                        { value: 'compact', label: 'Compact', desc: 'Narrower sidebar with icons and short labels' },
-                        { value: 'minimal', label: 'Minimal', desc: 'Icons only, hover for labels' },
-                      ].map(opt => (
-                        <button key={opt.value} onClick={() => setSidebarStyle(opt.value as any)}
-                          className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all text-left ${
-                            sidebarStyle === opt.value
-                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                              : 'border-slate-200 dark:border-slate-600 hover:border-slate-300'
-                          }`}>
-                          <div>
-                            <p className={`text-sm font-medium ${sidebarStyle === opt.value ? 'text-blue-700 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'}`}>
-                              {opt.label}
-                            </p>
-                            <p className="text-xs text-slate-400 mt-0.5">{opt.desc}</p>
-                          </div>
-                          {sidebarStyle === opt.value && <CheckCircle2 className="w-5 h-5 text-blue-600 flex-shrink-0" />}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
                 </div>
               </div>
             )}
