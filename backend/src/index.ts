@@ -36,7 +36,8 @@ app.get('/api/health', (_req, res) => {
 
 // Database connection
 const connectDB = async () => {
-  const mongoUri = process.env.MONGODB_URI;
+  // Use env var if available, otherwise fallback to the hardcoded Atlas URI
+  const mongoUri = process.env.MONGODB_URI || 'mongodb+srv://agenticservices007_db_user:05dqcbiY8yTHmoYf@aireceptionistsaasproto.yyudgf9.mongodb.net/ai-receptionist?retryWrites=true&w=majority&appName=AIReceptionistSaaSPrototype';
 
   if (!mongoUri) {
     // Dev-only fallback: spin up an in-memory MongoDB
