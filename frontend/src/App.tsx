@@ -18,19 +18,11 @@ import Appointments from './pages/business/Appointments';
 import CallLogs from './pages/business/CallLogs';
 import Settings from './pages/business/Settings';
 
-const LandingRedirect = () => {
-  const { isAuthenticated, user } = useAuthStore();
-  if (isAuthenticated) {
-    return <Navigate to={user?.role === 'SUPER_ADMIN' ? '/admin' : '/dashboard'} replace />;
-  }
-  return <Landing />;
-};
-
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<LandingRedirect />} />
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
