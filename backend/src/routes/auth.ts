@@ -1,76 +1,111 @@
 import express, { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import User from '../models/User';
 import Business from '../models/Business';
 
 const router = express.Router();
 
-// Mock registration for Phase 1
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_fallback_secret_change_in_production';
+
+// Register
 router.post('/register', async (req: Request, res: Response) => {
   try {
     const { email, password, firstName, lastName, businessName, industry } = req.body;
 
-    // Check if user exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
+    if (!email || !password || !firstName || !lastName) {
+      return res.status(400).json({ message: 'All fields are required.' });
     }
+
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.status(400).json({ message: 'An account with this email already exists.' });
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
 
     // Create Business Tenant
     const business = new Business({
       name: businessName || `${firstName}'s Business`,
-      industry: industry || 'Other'
+      industry: industry || 'Other',
     });
     await business.save();
 
     // Create User
     const user = new User({
-      email,
-      passwordHash: password, // In production, use bcrypt!
+      email: email.toLowerCase(),
+      passwordHash,
       firstName,
       lastName,
       role: 'BUSINESS_OWNER',
-      businessId: business._id
+      businessId: business._id,
     });
     await user.save();
 
-    // Generate Token
     const token = jwt.sign(
       { id: user._id, role: user.role, businessId: user.businessId },
-      process.env.JWT_SECRET || 'fallback_secret',
-      { expiresIn: '1d' }
+      JWT_SECRET,
+      { expiresIn: '7d' }
     );
 
-    res.status(201).json({ token, user, business });
+    res.status(201).json({
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        businessId: user.businessId,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    console.error('Register error:', error);
+    res.status(500).json({ message: 'Server error during registration.' });
   }
 });
 
-// Mock login for Phase 1
+// Login
 router.post('/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required.' });
     }
 
-    // In production, compare hashed password!
-    if (user.passwordHash !== password) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password.' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid email or password.' });
     }
 
     const token = jwt.sign(
       { id: user._id, role: user.role, businessId: user.businessId },
-      process.env.JWT_SECRET || 'fallback_secret',
-      { expiresIn: '1d' }
+      JWT_SECRET,
+      { expiresIn: '7d' }
     );
 
-    res.json({ token, user });
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        businessId: user.businessId,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error during login.' });
   }
 });
 

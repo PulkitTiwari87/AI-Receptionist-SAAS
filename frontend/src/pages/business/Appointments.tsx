@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Calendar as CalendarIcon, Clock, User, Search, Filter, Trash2 } from 'lucide-react';
+import { Plus, Calendar as CalendarIcon, Clock, Search, Filter, Trash2 } from 'lucide-react';
 import AddAppointmentModal from '../../components/AddAppointmentModal';
 
 interface Appointment {
