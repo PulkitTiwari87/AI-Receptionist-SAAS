@@ -18,7 +18,7 @@ const Settings = () => {
   // Profile state
   const [profile, setProfile] = useState({
     firstName: user?.firstName || '', lastName: user?.lastName || '',
-    email: user?.email || '', phone: '', company: '', jobTitle: '', bio: '',
+    email: user?.email || '', phone: '', businessPhone: '', company: '', jobTitle: '', bio: '',
     timezone: 'America/New_York',
   });
   const [profileSaved, setProfileSaved] = useState(false);
@@ -135,10 +135,25 @@ const Settings = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Phone Number</label>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Personal Phone</label>
                       <input value={profile.phone} onChange={e => setProfile(p => ({ ...p, phone: e.target.value }))}
                         className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-blue-300 outline-none dark:bg-slate-700 dark:text-white"
                         placeholder="+1 (555) 000-0000" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Business Phone Number</label>
+                      <input value={profile.businessPhone} onChange={e => setProfile(p => ({ ...p, businessPhone: e.target.value }))}
+                        className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-blue-300 outline-none dark:bg-slate-700 dark:text-white"
+                        placeholder="Your existing business number" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Company Name</label>
+                      <input value={profile.company} onChange={e => setProfile(p => ({ ...p, company: e.target.value }))}
+                        className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-blue-300 outline-none dark:bg-slate-700 dark:text-white"
+                        placeholder="Your Company LLC" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Job Title</label>
