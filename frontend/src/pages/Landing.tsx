@@ -2,7 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   Phone, Calendar, Globe, Shield, Zap, CheckCircle2, 
-  ChevronRight, Star, Building2, Stethoscope, UtensilsCrossed, Menu, X, Play
+  ChevronRight, Star, Building2, Stethoscope, UtensilsCrossed, Menu, X, Play,
+  Volume2, Square
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
@@ -12,9 +13,15 @@ const fadeUp = {
   visible: (i = 0) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1, duration: 0.6 } }),
 };
 
+const sampleVoices = [
+  { id: 'female', name: 'Sophia', gender: 'Female', text: 'Hi there, I am Sophia. I can answer calls, book appointments, and handle customer inquiries twenty four seven. How can I help your business grow today?' },
+  { id: 'male', name: 'Marcus', gender: 'Male', text: 'Hello, this is Marcus. I am an AI assistant designed to work nonstop for your business. I never take a day off, and I never miss a lead.' }
+];
+
 const Landing = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const { login } = useAuthStore();
 
   const enterDemo = () => {
@@ -24,6 +31,35 @@ const Landing = () => {
       'demo-token'
     );
     navigate('/dashboard');
+  };
+
+  const toggleVoice = (voiceId: string, text: string, gender: string) => {
+    if (playingVoice === voiceId) {
+      window.speechSynthesis.cancel();
+      setPlayingVoice(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    setPlayingVoice(voiceId);
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Try to find a good voice based on gender
+    const voices = window.speechSynthesis.getVoices();
+    let selectedVoice;
+    if (gender === 'Female') {
+      selectedVoice = voices.find(v => v.name.includes('Female') || v.name.includes('Samantha') || v.name.includes('Google US English'));
+    } else {
+      selectedVoice = voices.find(v => v.name.includes('Male') || v.name.includes('Alex') || v.name.includes('Daniel'));
+    }
+    
+    if (selectedVoice) utterance.voice = selectedVoice;
+    utterance.rate = 0.95; // Slightly slower for clarity
+    utterance.pitch = gender === 'Female' ? 1.1 : 0.9;
+    
+    utterance.onend = () => setPlayingVoice(null);
+    window.speechSynthesis.speak(utterance);
   };
 
   const features = [
@@ -94,7 +130,7 @@ const Landing = () => {
             </span>
           </motion.div>
           <motion.h1 custom={1} initial="hidden" animate="visible" variants={fadeUp} className="text-5xl md:text-6xl font-extrabold text-slate-900 leading-tight mb-6">
-            Your Business Deserves an <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-blue-700">AI Receptionist</span> That Never Sleeps
+            The Nonstop <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-blue-700">AI Assistant</span> That Works Harder Than You Do
           </motion.h1>
           <motion.p custom={2} initial="hidden" animate="visible" variants={fadeUp} className="text-xl text-slate-500 max-w-2xl mx-auto mb-10">
             Handle every call, book appointments automatically, and grow your business — 24/7, in any language, with zero missed opportunities.
@@ -122,6 +158,34 @@ const Landing = () => {
             <div className="flex items-center gap-1 text-yellow-400">
               {[...Array(5)].map((_,i) => <Star key={i} className="w-4 h-4 fill-current" />)}
               <span className="text-slate-500 ml-1">4.9/5</span>
+            </div>
+          </motion.div>
+
+          {/* Voice Sampler */}
+          <motion.div custom={4.5} initial="hidden" animate="visible" variants={fadeUp} className="mt-12 bg-white/60 backdrop-blur-md border border-slate-200 rounded-2xl p-6 max-w-2xl mx-auto shadow-sm">
+            <h3 className="text-sm font-bold text-slate-900 mb-4 flex items-center justify-center gap-2">
+              <Volume2 className="w-4 h-4 text-blue-500" /> Sample Our AI Voices
+            </h3>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              {sampleVoices.map(voice => (
+                <button 
+                  key={voice.id}
+                  onClick={() => toggleVoice(voice.id, voice.text, voice.gender)}
+                  className={`flex items-center gap-3 px-5 py-3 rounded-xl border transition-all ${
+                    playingVoice === voice.id 
+                      ? 'border-blue-500 bg-blue-50 text-blue-700 ring-2 ring-blue-200' 
+                      : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-slate-50'
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${playingVoice === voice.id ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                    {playingVoice === voice.id ? <Square className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current ml-0.5" />}
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold leading-none mb-1">{voice.name}</p>
+                    <p className="text-xs opacity-70 leading-none">{voice.gender} Voice</p>
+                  </div>
+                </button>
+              ))}
             </div>
           </motion.div>
         </div>
