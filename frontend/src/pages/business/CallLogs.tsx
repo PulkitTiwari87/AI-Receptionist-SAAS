@@ -1,33 +1,52 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Phone, PhoneIncoming, PhoneOutgoing, PhoneMissed, Search, Filter, Clock, Download } from 'lucide-react';
+import { Phone, PhoneIncoming, PhoneOutgoing, PhoneMissed, Search, Filter, Clock, Download, Loader2 } from 'lucide-react';
+import { api } from '../../lib/api';
+import { useAuthStore } from '../../store/authStore';
 
 interface CallLog {
-  id: number;
-  caller: string;
-  phone: string;
-  direction: 'inbound' | 'outbound' | 'missed';
-  intent: string;
-  duration: string;
-  outcome: string;
-  time: string;
-  date: string;
-  transcript: string;
+  _id: string;
+  customerPhone: string;
+  customerName?: string;
+  duration: number;
+  status: string;
+  transcript?: string;
+  summary?: string;
+  sentiment?: string;
+  recordingUrl?: string;
+  createdAt: string;
 }
 
-const mockCalls: CallLog[] = [
-  { id: 1, caller: 'Sarah Johnson', phone: '+1 (555) 123-4567', direction: 'inbound', intent: 'Book Appointment', duration: '2m 14s', outcome: 'Appointment Booked', time: '10:42 AM', date: '2026-05-06', transcript: 'Caller asked to schedule a chiropractic appointment. AI successfully booked slot for Thursday 2PM.' },
-  { id: 2, caller: 'Michael Smith', phone: '+1 (555) 987-6543', direction: 'inbound', intent: 'Pricing Inquiry', duration: '1m 45s', outcome: 'Resolved', time: '09:15 AM', date: '2026-05-06', transcript: 'Caller asked about service pricing. AI provided full pricing breakdown.' },
-  { id: 3, caller: 'Unknown', phone: '+1 (555) 456-7890', direction: 'missed', intent: 'N/A', duration: '0s', outcome: 'Missed', time: '08:30 AM', date: '2026-05-06', transcript: '' },
-  { id: 4, caller: 'Emily Davis', phone: '+1 (555) 234-5678', direction: 'inbound', intent: 'Reschedule', duration: '3m 02s', outcome: 'Transferred to Staff', time: '04:10 PM', date: '2026-05-05', transcript: 'Caller requested to reschedule. AI transferred to front desk staff for manual handling.' },
-  { id: 5, caller: 'David Lee', phone: '+1 (555) 876-5432', direction: 'inbound', intent: 'After-hours Inquiry', duration: '1m 55s', outcome: 'Appointment Booked', time: '07:45 PM', date: '2026-05-05', transcript: 'After-hours call handled by AI. Caller wanted to know about weekend hours and booked a Monday slot.' },
-  { id: 6, caller: 'Laura Chen', phone: '+1 (555) 321-9876', direction: 'inbound', intent: 'FAQs / Insurance', duration: '4m 20s', outcome: 'Resolved', time: '02:30 PM', date: '2026-05-04', transcript: 'Caller had questions about insurance coverage. AI explained accepted providers.' },
-];
-
 const CallLogs = () => {
+  const { token } = useAuthStore();
+  const [calls, setCalls] = useState<CallLog[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [directionFilter, setDirectionFilter] = useState('All');
-  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCalls = async () => {
+      try {
+        const res = await api.get('/api/calls', token || undefined);
+        if (res.ok) {
+          const data = await res.json();
+          setCalls(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch call logs:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCalls();
+  }, [token]);
+
+  const formatDuration = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}m ${s}s`;
+  };
 
   const directionIcon = (dir: string) => {
     if (dir === 'inbound') return <PhoneIncoming className="w-4 h-4 text-emerald-500" />;
@@ -42,18 +61,18 @@ const CallLogs = () => {
     return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
   };
 
-  const filtered = mockCalls.filter(c => {
-    const matchSearch = c.caller.toLowerCase().includes(search.toLowerCase()) ||
-      c.phone.includes(search) || c.intent.toLowerCase().includes(search.toLowerCase());
-    const matchDir = directionFilter === 'All' || c.direction === directionFilter.toLowerCase();
-    return matchSearch && matchDir;
+  const filtered = calls.filter(c => {
+    const matchSearch = (c.customerName || '').toLowerCase().includes(search.toLowerCase()) ||
+      c.customerPhone.includes(search) || (c.summary || '').toLowerCase().includes(search.toLowerCase());
+    const matchStatus = statusFilter === 'All' || c.status === statusFilter.toLowerCase();
+    return matchSearch && matchStatus;
   });
 
   const stats = [
-    { label: 'Total Calls', value: mockCalls.length, icon: Phone, color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30' },
-    { label: 'AI Resolved', value: mockCalls.filter(c => c.outcome === 'Resolved' || c.outcome === 'Appointment Booked').length, icon: PhoneIncoming, color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30' },
-    { label: 'Missed Calls', value: mockCalls.filter(c => c.direction === 'missed').length, icon: PhoneMissed, color: 'text-rose-600 bg-rose-100 dark:bg-rose-900/30' },
-    { label: 'Avg Duration', value: '2m 36s', icon: Clock, color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30' },
+    { label: 'Total Calls', value: calls.length, icon: Phone, color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30' },
+    { label: 'Completed', value: calls.filter(c => c.status === 'completed').length, icon: PhoneIncoming, color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30' },
+    { label: 'Missed', value: calls.filter(c => c.status === 'missed').length, icon: PhoneMissed, color: 'text-rose-600 bg-rose-100 dark:bg-rose-900/30' },
+    { label: 'Avg Duration', value: formatDuration(calls.length > 0 ? calls.reduce((acc, c) => acc + c.duration, 0) / calls.length : 0), icon: Clock, color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30' },
   ];
 
   return (
@@ -95,42 +114,59 @@ const CallLogs = () => {
         </div>
         <div className="relative">
           <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <select value={directionFilter} onChange={e => setDirectionFilter(e.target.value)}
-            className="pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-blue-300 outline-none dark:bg-slate-800 dark:border-slate-700 dark:text-white">
-            {['All', 'Inbound', 'Outbound', 'Missed'].map(d => <option key={d}>{d}</option>)}
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+            className="pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-blue-300 outline-none dark:bg-slate-800 dark:border-slate-700 dark:text-white capitalize">
+            {['All', 'completed', 'missed', 'transferred', 'voicemail'].map(d => <option key={d}>{d}</option>)}
           </select>
         </div>
       </div>
 
       {/* Calls list */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="py-24 flex flex-col items-center gap-3">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            <p className="text-slate-500">Loading call logs...</p>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="py-16 text-center text-slate-400 dark:text-slate-500">No calls found.</div>
         ) : filtered.map((call, i) => (
-          <div key={call.id}>
+          <div key={call._id}>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }}
-              onClick={() => setExpandedId(expandedId === call.id ? null : call.id)}
+              onClick={() => setExpandedId(expandedId === call._id ? null : call._id)}
               className="flex items-center gap-4 px-6 py-4 border-b border-slate-100 dark:border-slate-700 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors cursor-pointer">
               <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
-                {directionIcon(call.direction)}
+                {call.status === 'completed' ? <PhoneIncoming className="w-4 h-4 text-emerald-500" /> : <PhoneMissed className="w-4 h-4 text-rose-500" />}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-slate-900 dark:text-white text-sm truncate">{call.caller}</p>
-                <p className="text-xs text-slate-400 truncate">{call.phone} · {call.intent}</p>
+                <p className="font-medium text-slate-900 dark:text-white text-sm truncate">{call.customerName || 'Unknown Caller'}</p>
+                <p className="text-xs text-slate-400 truncate">{call.customerPhone} · {call.summary || 'No summary'}</p>
               </div>
               <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400">
-                <Clock className="w-3 h-3" /> {call.duration}
+                <Clock className="w-3 h-3" /> {formatDuration(call.duration)}
               </div>
-              <div className="text-xs text-slate-400 hidden md:block">{call.date} {call.time}</div>
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 ${outcomeStyle(call.outcome)}`}>
-                {call.outcome}
+              <div className="text-xs text-slate-400 hidden md:block">{new Date(call.createdAt).toLocaleString()}</div>
+              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 capitalize ${outcomeStyle(call.status)}`}>
+                {call.status}
               </span>
             </motion.div>
-            {expandedId === call.id && call.transcript && (
+            {expandedId === call._id && (call.transcript || call.summary) && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
                 className="px-6 py-4 bg-slate-50 dark:bg-slate-900/40 border-b border-slate-100 dark:border-slate-700">
-                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">AI Call Summary</p>
-                <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{call.transcript}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {call.summary && (
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">AI Summary</p>
+                      <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{call.summary}</p>
+                    </div>
+                  )}
+                  {call.transcript && (
+                    <div>
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Transcript Snippet</p>
+                      <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed italic">"{call.transcript.substring(0, 200)}..."</p>
+                    </div>
+                  )}
+                </div>
               </motion.div>
             )}
           </div>

@@ -1,38 +1,105 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Save, Plus, Trash2 } from 'lucide-react';
+import { Save, Plus, Trash2, Loader2, CheckCircle } from 'lucide-react';
+import { api } from '../../lib/api';
+import { useAuthStore } from '../../store/authStore';
+
+interface KnowledgeItem {
+  _id?: string;
+  title: string;
+  content: string;
+  category: string;
+}
 
 const KnowledgeBase = () => {
-  const [faqs, setFaqs] = useState([
-    { question: 'What are your hours of operation?', answer: 'We are open Monday through Friday from 9 AM to 5 PM.' },
-    { question: 'Where are you located?', answer: 'Our main office is at 123 Health Way, Wellness City, TX 75001.' },
-    { question: 'Do you accept insurance?', answer: 'Yes, we accept most major insurance providers including BlueCross, Aetna, and Cigna.' }
-  ]);
-
+  const { token } = useAuthStore();
+  const [faqs, setFaqs] = useState<KnowledgeItem[]>([]);
   const [businessInfo, setBusinessInfo] = useState({
-    description: 'We are a premier chiropractic clinic dedicated to holistic wellness and pain relief.',
-    services: 'Spinal Adjustment, Massage Therapy, Physical Rehabilitation, Acupuncture'
+    description: '',
+    services: ''
   });
-
+  const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [bizRes, faqRes] = await Promise.all([
+          api.get('/api/business/profile', token || undefined),
+          api.get('/api/knowledge', token || undefined)
+        ]);
+
+        if (bizRes.ok) {
+          const bizData = await bizRes.json();
+          setBusinessInfo({
+            description: bizData.description || '',
+            services: bizData.services || ''
+          });
+        }
+
+        if (faqRes.ok) {
+          const faqData = await faqRes.json();
+          setFaqs(faqData.filter((i: any) => i.category === 'faq').map((i: any) => ({
+            _id: i._id,
+            title: i.title,
+            content: i.content,
+            category: i.category
+          })));
+        }
+      } catch (err) {
+        console.error('Failed to fetch knowledge data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [token]);
+
   const handleAddFaq = () => {
-    setFaqs([...faqs, { question: '', answer: '' }]);
+    setFaqs([...faqs, { title: '', content: '', category: 'faq' }]);
   };
 
-  const handleRemoveFaq = (index: number) => {
+  const handleRemoveFaq = async (index: number) => {
+    const item = faqs[index];
+    if (item._id) {
+      try {
+        await api.delete(`/api/knowledge/${item._id}`, token || undefined);
+      } catch (err) {
+        console.error('Failed to delete FAQ:', err);
+      }
+    }
     setFaqs(faqs.filter((_, i) => i !== index));
   };
 
-  const handleFaqChange = (index: number, field: 'question' | 'answer', value: string) => {
+  const handleFaqChange = (index: number, field: 'title' | 'content', value: string) => {
     const newFaqs = [...faqs];
-    newFaqs[index][field] = value;
+    newFaqs[index] = { ...newFaqs[index], [field]: value };
     setFaqs(newFaqs);
   };
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      // Save business info
+      await api.patch('/api/business/profile', businessInfo, token || undefined);
+
+      // Save FAQs (simplified: delete and re-save or individual updates)
+      // For this prototype, we'll just save them individually if they changed
+      await Promise.all(faqs.map(faq => {
+        if (faq._id) {
+          return api.put(`/api/knowledge/${faq._id}`, faq, token || undefined);
+        } else {
+          return api.post('/api/knowledge', faq, token || undefined);
+        }
+      }));
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error('Failed to save knowledge base:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputClass = "w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-300 outline-none resize-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-colors";
@@ -47,14 +114,21 @@ const KnowledgeBase = () => {
         </div>
         <button
           onClick={handleSave}
+          disabled={loading}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${
             saved
               ? 'bg-emerald-600 text-white'
               : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100'
-          }`}
+          } ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
         >
-          <Save className="w-4 h-4" />
-          {saved ? 'Saved!' : 'Save Changes'}
+          {loading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : saved ? (
+            <CheckCircle className="w-4 h-4" />
+          ) : (
+            <Save className="w-4 h-4" />
+          )}
+          {loading ? 'Saving...' : saved ? 'Saved!' : 'Save Changes'}
         </button>
       </div>
 
@@ -117,8 +191,8 @@ const KnowledgeBase = () => {
                   </label>
                   <input
                     type="text"
-                    value={faq.question}
-                    onChange={(e) => handleFaqChange(index, 'question', e.target.value)}
+                    value={faq.title}
+                    onChange={(e) => handleFaqChange(index, 'title', e.target.value)}
                     className={faqInputClass}
                     placeholder="E.g., Do you offer walk-in appointments?"
                   />
@@ -128,8 +202,8 @@ const KnowledgeBase = () => {
                     AI Answer
                   </label>
                   <textarea
-                    value={faq.answer}
-                    onChange={(e) => handleFaqChange(index, 'answer', e.target.value)}
+                    value={faq.content}
+                    onChange={(e) => handleFaqChange(index, 'content', e.target.value)}
                     className={`${faqInputClass} resize-none h-20`}
                     placeholder="Provide the exact answer the AI should give..."
                   />

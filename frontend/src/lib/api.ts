@@ -39,6 +39,18 @@ export const api = {
     return res;
   },
 
+  async patch(path: string, body: unknown, token?: string) {
+    const res = await fetch(`${API_URL}${path}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(body),
+    });
+    return res;
+  },
+
   async delete(path: string, token?: string) {
     const res = await fetch(`${API_URL}${path}`, {
       method: 'DELETE',

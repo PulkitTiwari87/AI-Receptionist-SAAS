@@ -3,6 +3,11 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import authRoutes from './routes/auth';
+import appointmentRoutes from './routes/appointments';
+import knowledgeRoutes from './routes/knowledge';
+import callRoutes from './routes/calls';
+import businessRoutes from './routes/business';
+import billingRoutes from './routes/billing';
 
 dotenv.config();
 
@@ -15,10 +20,18 @@ app.use(cors({
   credentials: true,
 }));
 
+// Webhook must be BEFORE app.use(express.json()) to receive raw body
+app.use('/api/billing/webhook', express.raw({ type: 'application/json' }));
+
 app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/knowledge', knowledgeRoutes);
+app.use('/api/calls', callRoutes);
+app.use('/api/business', businessRoutes);
+app.use('/api/billing', billingRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.status(200).json({ status: 'ok', message: 'AI Receptionist API is running', env: process.env.NODE_ENV });

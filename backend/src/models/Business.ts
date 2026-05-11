@@ -10,6 +10,8 @@ export interface IBusiness extends Document {
   afterHoursAIEnabled: boolean;
   phoneNumbers: string[];
   address?: string;
+  description?: string;
+  services?: string;
   timezone: string;
   createdAt: Date;
   updatedAt: Date;
@@ -38,6 +40,8 @@ const BusinessSchema: Schema = new Schema({
   afterHoursAIEnabled: { type: Boolean, default: false },
   phoneNumbers: [{ type: String }],
   address: { type: String, required: false },
+  description: { type: String, required: false },
+  services: { type: String, required: false },
   timezone: { type: String, default: 'UTC' }
 }, { timestamps: true });
 
