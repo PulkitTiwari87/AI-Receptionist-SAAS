@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Phone, PhoneIncoming, PhoneOutgoing, PhoneMissed, Search, Filter, Clock, Download, Loader2 } from 'lucide-react';
+import { Phone, PhoneIncoming, PhoneMissed, Search, Filter, Clock, Download, Loader2 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
 
