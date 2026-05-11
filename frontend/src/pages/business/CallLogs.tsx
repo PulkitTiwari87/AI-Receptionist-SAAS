@@ -48,12 +48,6 @@ const CallLogs = () => {
     return `${m}m ${s}s`;
   };
 
-  const directionIcon = (dir: string) => {
-    if (dir === 'inbound') return <PhoneIncoming className="w-4 h-4 text-emerald-500" />;
-    if (dir === 'outbound') return <PhoneOutgoing className="w-4 h-4 text-blue-500" />;
-    return <PhoneMissed className="w-4 h-4 text-rose-500" />;
-  };
-
   const outcomeStyle = (outcome: string) => {
     if (outcome.includes('Booked')) return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400';
     if (outcome === 'Resolved') return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
