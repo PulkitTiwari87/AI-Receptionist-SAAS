@@ -13,6 +13,7 @@ export interface IBusiness extends Document {
   description?: string;
   services?: string;
   timezone: string;
+  retellAgentId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,7 +43,8 @@ const BusinessSchema: Schema = new Schema({
   address: { type: String, required: false },
   description: { type: String, required: false },
   services: { type: String, required: false },
-  timezone: { type: String, default: 'UTC' }
+  timezone: { type: String, default: 'UTC' },
+  retellAgentId: { type: String, required: false }
 }, { timestamps: true });
 
 export default mongoose.model<IBusiness>('Business', BusinessSchema);

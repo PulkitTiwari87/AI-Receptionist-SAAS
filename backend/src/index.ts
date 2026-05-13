@@ -8,6 +8,7 @@ import knowledgeRoutes from './routes/knowledge';
 import callRoutes from './routes/calls';
 import businessRoutes from './routes/business';
 import billingRoutes from './routes/billing';
+import retellRoutes from './routes/retell';
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ app.use('/api/knowledge', knowledgeRoutes);
 app.use('/api/calls', callRoutes);
 app.use('/api/business', businessRoutes);
 app.use('/api/billing', billingRoutes);
+app.use('/api/retell', retellRoutes);
 
 app.get('/api/health', (_req, res) => {
   res.status(200).json({ status: 'ok', message: 'AI Receptionist API is running', env: process.env.NODE_ENV });

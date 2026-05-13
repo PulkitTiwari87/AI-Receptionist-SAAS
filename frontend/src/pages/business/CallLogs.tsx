@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Phone, PhoneIncoming, PhoneMissed, Search, Filter, Clock, Download, Loader2 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
+import RetellWebCall from '../../components/RetellWebCall';
 
 interface CallLog {
   _id: string;
@@ -76,9 +77,12 @@ const CallLogs = () => {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Call Logs</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1">Review all calls handled by your AI Receptionist.</p>
         </div>
-        <button className="flex items-center gap-2 text-sm font-medium border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-          <Download className="w-4 h-4" /> Export CSV
-        </button>
+        <div className="flex items-center gap-3">
+          <RetellWebCall />
+          <button className="flex items-center gap-2 text-sm font-medium border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+            <Download className="w-4 h-4" /> Export CSV
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
